@@ -75,22 +75,29 @@ def find_tag(root, tag_name):
     return False
 
 def is_element(elem, tag_name=None, attribute=None, attributeValue=None):
-    if(tag_name):
+    if(tag_name and attribute and attributeValue):
+        return etree.QName(elem.tag).localname == tag_name and (attribute in elem.attrib) and elem.attrib[attribute] == attributeValue
+    if tag_name and attribute:
+        return etree.QName(elem.tag).localname == tag_name and (attribute in elem.attrib)
+    if  tag_name and attributeValue:
+        return etree.QName(elem.tag).localname == tag_name and elem.attrib.values[0] == attributeValue
+    if attribute and attributeValue:
+        return elem.attrib[attribute] and elem.attrib.values[0] == attributeValue
+    if tag_name:
         return etree.QName(elem.tag).localname == tag_name
-    if(attribute and attributeValue):
-        return elem.attrib['attribute'] == attributeValue
-    elif(attribute):
-        return elem.attrib == attribute
-    elif(attributeValue):
-        print(elem)
-    return True
+    if attribute:
+        return elem.attrib[attribute] 
+    if attributeValue:
+        return elem.attrib.values[0] == attributeValue
+    else:
+        return True
 
 def get_Elements(root, tag_name=None, attribute=None, attributeValue=None, recursive=False):
         found_elements = []
         #remember tag name
         if is_element(root, tag_name=tag_name, attribute=attribute, attributeValue=attributeValue):
             found_elements += [root]
-            if recursive:
+            if not recursive:
                 return found_elements
         
         for c in list(root):
@@ -111,6 +118,9 @@ else:
     print("OLD")
 
 
-elem = get_Elements(root, tag_name="p", recursive=False)
+elem = get_Elements(root, tag_name="title", attribute="rend", attributeValue="shortForm", recursive=True)
 print(elem[0].text)
+a = {1:0, 2:3, 4:5}
+
+
 #print(extract_text(element[19]))
