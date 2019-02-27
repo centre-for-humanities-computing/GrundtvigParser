@@ -16,6 +16,11 @@
 #pass it version number and return allowed tags and allowed children.
 #
 
+
+#find tags
+#get tags
+#create system with json files describing the structure of meta data and content
+
 from lxml import etree, objectify
 import lxml.html, lxml.html.clean
 from argparse import ArgumentParser
@@ -58,40 +63,54 @@ class GrundtvigParse:
 def is_tag(elem, tag_name):
     return etree.QName(elem.tag).localname == tag_name
 
-def find_tag(root, tag_name, level):
+def find_tag(root, tag_name):
     found = False
     if not is_tag(root, tag_name):
         for c in list(root):
-            print(c.tag, level)
-            found = find_tag2(c, tag_name, level + 1)
+            found = find_tag(c, tag_name)
             if found:
                 return True
     else:
         return True
     return False
 
-def get_tag(root, tag_name=None, attribute=None, attributeValue=None, recursive=False):
-        found = False
-        if not is_tag(root, tag_name):
-            for c in list(root):
-                print(c.tag, level)
-                found = find_tag2(c, tag_name, level + 1)
-                if recursive:
-                    return True
-        else:
-            return True
-        return False
+def is_element(elem, tag_name=None, attribute=None, attributeValue=None):
+    if(tag_name):
+        return etree.QName(elem.tag).localname == tag_name
+    if(attribute and attributeValue):
+        return elem.attrib['attribute'] == attributeValue
+    elif(attribute):
+        return elem.attrib == attribute
+    elif(attributeValue):
+        print(elem)
+    return True
+
+def get_Elements(root, tag_name=None, attribute=None, attributeValue=None, recursive=False):
+        found_elements = []
+        #remember tag name
+        if is_element(root, tag_name=tag_name, attribute=attribute, attributeValue=attributeValue):
+            found_elements += [root]
+            if recursive:
+                return found_elements
+        
+        for c in list(root):
+            print(c.tag)
+            found_elements += get_Elements(c, tag_name=tag_name, attribute=attribute, attributeValue=attributeValue, recursive=recursive)
+            if(found_elements and not recursive):
+                return found_elements
+        return found_elements
 
 
 parser = etree.XMLParser(remove_comments=True)
-documentTree = objectify.parse("test_data3.xml", parser=parser)
+documentTree = objectify.parse("test_data.xml", parser=parser)
 root = documentTree.getroot()
 element = [x for x in root.iter("{http://www.tei-c.org/ns/1.0}teiHeader")]
-
-if find_tag2(element[0], "idno", 0):
+if find_tag(element[0], "idno"):
     print("NEW")
 else:
     print("OLD")
 
 
+elem = get_Elements(root, tag_name="p", recursive=False)
+print(elem[0].text)
 #print(extract_text(element[19]))
