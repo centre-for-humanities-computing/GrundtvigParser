@@ -47,17 +47,34 @@ class GrundtvigParse:
             rootTag = getHead()
             metadataDict = extractText(rootTag, validateTag.metadata, raw_text=False)
 
-
-    def extract_text(from_element):
-        text = ""
-        for c in list(from_element):
+def get_inner(from_element):
+    text = ""
+    for c in list(from_element):
+        if is_element(c, attribute="facs"):
+            text += " "
+        if tagIsAccepted(c.tag):
             if c.text:
                 text += c.text
             if list(c):
-                text += extract_text(c)
+                text += get_inner(c)
             if c.tail:
                 text += c.tail
-        return text
+        
+
+            
+    return text
+
+def extract_text(from_element):
+    text = ""
+  
+    if from_element.text:
+        text += from_element.text
+
+    text += get_inner(from_element)
+
+    if from_element.tail:
+        text += from_element.tail
+    return text
 
 
 def is_tag(elem, tag_name):
@@ -74,6 +91,11 @@ def find_tag(root, tag_name):
         return True
     return False
 
+def tagIsAccepted(tag):
+    atag = etree.QName(tag).localname
+    if atag != "witDetail" and atag != "rdg": return True
+    return False
+
 def is_element(elem, tag_name=None, attribute=None, attributeValue=None):
     if(tag_name and attribute and attributeValue):
         return etree.QName(elem.tag).localname == tag_name and (attribute in elem.attrib) and elem.attrib[attribute] == attributeValue
@@ -86,7 +108,7 @@ def is_element(elem, tag_name=None, attribute=None, attributeValue=None):
     if tag_name:
         return etree.QName(elem.tag).localname == tag_name
     if attribute:
-        return elem.attrib[attribute] 
+        return (attribute in elem.attrib)
     if attributeValue:
         return elem.attrib.values[0] == attributeValue
     else:
@@ -99,9 +121,8 @@ def get_Elements(root, tag_name=None, attribute=None, attributeValue=None, recur
             found_elements += [root]
             if not recursive:
                 return found_elements
-        
+
         for c in list(root):
-            print(c.tag)
             found_elements += get_Elements(c, tag_name=tag_name, attribute=attribute, attributeValue=attributeValue, recursive=recursive)
             if(found_elements and not recursive):
                 return found_elements
@@ -111,6 +132,8 @@ def get_Elements(root, tag_name=None, attribute=None, attributeValue=None, recur
 parser = etree.XMLParser(remove_comments=True)
 documentTree = objectify.parse("test_data.xml", parser=parser)
 root = documentTree.getroot()
+
+
 element = [x for x in root.iter("{http://www.tei-c.org/ns/1.0}teiHeader")]
 if find_tag(element[0], "idno"):
     print("NEW")
@@ -118,9 +141,21 @@ else:
     print("OLD")
 
 
-elem = get_Elements(root, tag_name="title", attribute="rend", attributeValue="shortForm", recursive=True)
-print(elem[0].text)
-a = {1:0, 2:3, 4:5}
+header = get_Elements(root, tag_name="teiHeader", recursive=False)
+print(header)
 
 
-#print(extract_text(element[19]))
+
+body = get_Elements(root, tag_name="body", recursive=False)
+print(body)
+paragraphs = get_Elements(body[0], tag_name="p", recursive=True)
+
+alltext = "" 
+
+for x in paragraphs:
+    alltext += extract_text(x).strip() + '\n'
+
+f = open("alltext.txt", "w+")
+f.write(alltext)
+
+# print(extract_text(element[19]))
