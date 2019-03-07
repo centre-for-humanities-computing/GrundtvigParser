@@ -27,58 +27,117 @@ from argparse import ArgumentParser
 #from GrundtvigTagValidator import metadata, body
 
 class TEIParser:
-    #""" The main parser for grundtvig data"""
-    root = None
+    """
+    Class for parsing TEI files
+
+    Attributes
+    ------------
+    root_node
+        the base node for the file
+    filepath
+        the filepath of the TEI file
+
+    Methods
+    ------------
+    extract_text
+        gets all text within all tags starting at the first element
+    find_tag
+        boolean value indicating wether the element with tag exists
+    is_element
+        boolean value indicating whether element has tag, attribute and attribute value
+    get_Elements
+        returns all elements that match description
+    write_json
+        writes files to json
+    write_raw
+        writes raw document to file
+    __get_inner
+        scans elements
+    __is_tag
+        returns wether tag is actual tag
+    """
+    root_node = None
     def __init__(self, filename):
         parser = etree.XMLParser(remove_comments=True)
         documentTree = objectify.parse(filename, parser=parser)
-        self.root = documentTree.getroot()
+        self.root_node = documentTree.getroot()   
+        self.filepath = filename 
+   
 
     #Public variables:
-    def extract_text(from_element):
+    def extract_text(self, from_element):
         text = ""
-    
+        #check if there is text, if so add to text
         if from_element.text:
             text += from_element.text
 
-        text += get_inner(from_element)
+        #get inner text from inner elements
+        text += self.__get_inner(from_element)
 
+        #check if there is tail, if so add to text
         if from_element.tail:
             text += from_element.tail
         return text
 
-    def find_tag(root, tag_name):
+    def find_tag(self, root, tag_name) -> bool:
         found = False
-        if not is_tag(root, tag_name):
+        if not self.__is_tag(root, tag_name):
             for c in list(root):
-                found = find_tag(c, tag_name)
+                found = self.find_tag(c, tag_name)
                 if found:
                     return True
         else:
             return True
         return False
 
-    def get_Elements(root, tag_name=None, attribute=None, attributeValue=None, recursive=False):
-            found_elements = []
-            #remember tag name
-            if is_element(root, tag_name=tag_name, attribute=attribute, attributeValue=attributeValue):
-                found_elements += [root]
-                if not recursive:
-                    return found_elements
+    def is_element(self, elem, tag_name=None, attribute=None, attributeValue=None) -> bool:
+        found = True
+        #check through both tag_name, attribute and attributeValue for each element at the same timee
+        #Adjusts output based on which elements aren't null
+        for tg, at, av in zip(tag_name, attribute, attributeValue):
+            if(tg and at and av):
+                found =  etree.QName(elem.tag).localname == tg and (at in elem.attrib) and elem.attrib[at] == av
+            elif tg and at:
+                found = etree.QName(elem.tag).localname == tg and (at in elem.attrib)
+            elif  tg and av:
+                found = etree.QName(elem.tag).localname == tg and elem.attrib.values[0] == av
+            elif at and av:
+                found = elem.attrib[at] and elem.attrib.values[0] == av
+            elif tg:
+                found = etree.QName(elem.tag).localname == tg
+            elif at:
+                found = (at in elem.attrib)
+            elif av:
+                found = elem.attrib.values[0] == av
+            if found:
+                return found
+        return found
 
-            for c in list(root):
-                found_elements += get_Elements(c, tag_name=tag_name, attribute=attribute, attributeValue=attributeValue, recursive=recursive)
+
+    def get_Elements(self, root, tag_name=None, attribute=None, attributeValue=None, recursive=False) -> [lxml.etree.Element]:
+        found_elements = []
+        #go through each element in root. There may be several main tags of interest
+        #i.e. get all the paragraphs and all the line groups.
+        for e in root:
+            if self.is_element(elem=e, tag_name=tag_name, attribute=attribute, attributeValue=attributeValue):
+                found_elements += [root]
+                if not recursive: #stop search if we just want the first element
+                    return found_elements
+        
+            #Go through all elements recursively until they have all been found.
+            for c in list(e):
+                found_elements += self.get_Elements([c], tag_name=tag_name, attribute=attribute, attributeValue=attributeValue, recursive=recursive)
                 if(found_elements and not recursive):
                     return found_elements
             return found_elements
     
-    def write_json():
+    def write_json(self):
         return
-    def write_raw(sep='\n'):
+    def write_raw(self, sep='\n'):
         return
     
     #Private functions
-    def __get_inner(from_element):
+    def __get_inner(self, from_element):
         text = ""
         for c in list(from_element):
             if is_element(c, attribute="facs"):
@@ -92,80 +151,5 @@ class TEIParser:
                     text += c.tail
         return text
     
-    def __is_tag(elem, tag_name):
+    def __is_tag(self, elem, tag_name):
         return etree.QName(elem.tag).localname == tag_name
-
-    def __is_element(elem, tag_name=None, attribute=None, attributeValue=None):
-        if(tag_name and attribute and attributeValue):
-            return etree.QName(elem.tag).localname == tag_name and (attribute in elem.attrib) and elem.attrib[attribute] == attributeValue
-        if tag_name and attribute:
-            return etree.QName(elem.tag).localname == tag_name and (attribute in elem.attrib)
-        if  tag_name and attributeValue:
-            return etree.QName(elem.tag).localname == tag_name and elem.attrib.values[0] == attributeValue
-        if attribute and attributeValue:
-            return elem.attrib[attribute] and elem.attrib.values[0] == attributeValue
-        if tag_name:
-            return etree.QName(elem.tag).localname == tag_name
-        if attribute:
-            return (attribute in elem.attrib)
-        if attributeValue:
-            return elem.attrib.values[0] == attributeValue
-        else:
-            return True
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-parser = etree.XMLParser(remove_comments=True)
-documentTree = objectify.parse("test_data.xml", parser=parser)
-root = documentTree.getroot()
-
-
-#element = [x for x in root.iter("{http://www.tei-c.org/ns/1.0}teiHeader")]
-#if find_tag(element[0], "idno"):
-#    print("NEW")
-#else:
-#    print("OLD")
-
-
-#header = get_Elements(root, tag_name="teiHeader", recursive=False)
-#genres = get_Elements(header[0], tag_name="classCode", attribute="scheme", recursive=True)
-#genre_terms = get_Elements(genres[0], tag_name="term", recursive=True)
-#for x in genre_terms:
-#    print(extract_text(x))
-
-
-
-#body = get_Elements(root, tag_name="body", recursive=False)
-#print(body)
-#paragraphs = get_Elements(body[0], tag_name="p", recursive=True)
-
-#alltext = "" 
-
-#for x in paragraphs:
-#    alltext += extract_text(x).strip() + '\n'
-
-#f = open("alltext.txt", "w+")
-#f.write(alltext)
-
-# print(extract_text(element[19]))
