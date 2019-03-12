@@ -1,0 +1,57 @@
+{
+    "querysource": {
+      "metadata": "teiHeader",
+      "content": "body"
+    },
+    "tags": {
+      "teiHeader": [
+        {
+          "date": {
+            "tag_name": "sourceDesc date",
+            "recursive": false
+          }
+        },
+        {
+          "genre": {
+            "tag_name": "classCode",
+            "attribute": "scheme",
+            "recursive": true
+          }
+        },
+        {
+          "keywords": {
+            "tag_name": "keywords",
+            "attribute": "scheme",
+            "recursive": true
+          }
+        }
+      ],
+      "body": [
+        {
+          "tag_name": "p",
+          "attribute": "rend",
+          "recursive": true,
+          "exclude": [
+            {
+              "tag_name": "rdg"
+            },
+            {
+              "tag_name": "witDetail"
+            }
+          ]
+        },
+        {
+          "tag_name": "lg",
+          "recursive": true,
+          "exclude": [
+            {
+              "tag_name": "rdg"
+            },
+            {
+              "tag_name": "witDetail"
+            }
+          ]
+        }
+      ]
+    }
+  }

@@ -1,0 +1,24 @@
+{
+    "querySource": {
+      "metadata": "teiHeader",
+      "content": "body"
+    },
+    "tags": {
+      "teiHeader": [
+        {
+          "date": {
+            "tag_name": "publicationStmt date"
+          }
+        }
+      ],
+      "body": [
+        {
+          "tag_name": "p",
+          "attribute": "rend"
+        },
+        {
+          "tag_name": "lg"
+        }
+      ]
+    }
+  }
