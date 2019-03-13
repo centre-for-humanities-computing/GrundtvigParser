@@ -32,8 +32,18 @@ class GrundtvigTagValidator:
     def __init__(self, validatorFile):
         self.tagValidator = json.loads(open(validatorFile).read())
     
-    def getQueryTags(self,query):
-        return self.tagValidator['tags'][query]
+    def getQueryTags(self):
+        return list(self.tagValidator.keys())
+
+    #def getQueryTags(self,query):
+    #    return self.tagValidator['tags'][query]
+
+    def getSelectorPath(self, key):
+        if key in self.tagValidator:
+            if 'selector_path' in self.tagValidator[key]:
+                return self.tagValidator[key]['selector_path']
+        else:
+            raise Exception("Error: Key or selector_path missing.")
 
     def getElementForTagName(self, elem, tagName) -> dict:
         for e in elem:

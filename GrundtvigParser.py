@@ -43,7 +43,24 @@ class GrundtvigParser(TEIParser):
 
     def __init__(self, filename):
         super().__init__(filename)
-        self.tag_validator = None
+
+    def extract_text(self, from_element, t):
+        text = ""
+        #check if there is text, if so add to text
+        if from_element.text:
+            text += self.clean_text(from_element.text.strip())
+
+        #get exclusions
+        #exclusions are tags that should be skipped
+        excludes = self.tag_validator.getExcludes(self.tag_validator.getElementForTagName(t, etree.QName(from_element.tag).localname))
+
+        #get inner text from inner elements
+        text += self.clean_text(self.__get_inner(from_element, excludes))
+        
+        #check if there is tail, if so add to text
+        if from_element.tail:
+            text += self.clean_text(from_element.tail.strip())
+        return text
 
     def metadata(self):
         return
@@ -76,78 +93,6 @@ class GrundtvigParser(TEIParser):
         text = re.sub(",", ", ", text)
         text = re.sub("\ {2,}", " ", text)
         open("../grundtvig-data/Data/raw_ubehandledeFiler/"+os.path.basename(self.filepath)+".txt", "w+").write(text)
-
-
-    def setValidator(self, validator):
-        self.tag_validator = validator
-
-    
-    def extract_text(self, from_element, t):
-        text = ""
-        #check if there is text, if so add to text
-        if from_element.text:
-            text += self.clean_text(from_element.text.strip())
-
-        #get exclusions
-        #exclusions are tags that should be skipped
-        excludes = self.tag_validator.getExcludes(self.tag_validator.getElementForTagName(t, etree.QName(from_element.tag).localname))
-
-        #get inner text from inner elements
-        text += self.clean_text(self.__get_inner(from_element, excludes))
-       
-        #check if there is tail, if so add to text
-        if from_element.tail:
-            text += self.clean_text(from_element.tail.strip())
-        return text
-
-    def clean_text(self, text):
-        if text.isspace():
-            return " "
-        text = text.replace('\n', ' ')
-        text = text.replace('\t', ' ')
-
-        #Only add spaces if the text had spaces to begin with
-        if not (text == text.strip()):
-            if text.startswith(' ') or text.startswith('\t') and text.endswith(' ') or text.endswith('\t'):
-                text = " " + text.strip() + " "
-            elif text.startswith(' ') or text.startswith('\t'):
-                text = " " + text.strip()
-            elif text.endswith(' ') or text.endswith('\t'):
-                text = text.strip() + " "
-
-        return text
-
-    def __get_inner(self, from_element, excludes):
-        text = ""
-
-        #Go through all the child elements of from_element
-        for c in list(from_element):
-            #If elements has the attribute "facs" add a space to text. 
-            #Elements with a facs attribute tend to forego spaces between tags
-            if super().is_element(c, tag_name=[None], attribute=["facs"], attributeValue=[None]):
-                text += " "
-            
-            #check whether element is in the list to exclude
-            #if so, start from top
-            found = False
-            if excludes:
-                for ex in excludes:
-                    found = False
-                    if super().is_element(elem=c, tag_name=[ex['tag_name']], attribute=[None], attributeValue=[None]):
-                        found = True
-                if found:
-                    continue
-            
-            if c.text:
-                text += self.clean_text(c.text)
-            #recursively explore for more embedded tags
-            if list(c):
-                text += self.__get_inner(c, excludes)
-            if c.tail:
-                text += self.clean_text(c.tail)
-
-        return text
-
 
 
 #Find and iterate through all the files
