@@ -4,6 +4,7 @@ from lxml import etree, objectify
 import lxml.html, lxml.html.clean
 from argparse import ArgumentParser
 import glob
+from glob import iglob
 import os
 import re
 
@@ -44,6 +45,7 @@ class GrundtvigParser(TEIParser):
     def __init__(self, filename):
         super().__init__(filename)
 
+    """
     def extract_text(self, from_element, t):
         text = ""
         #check if there is text, if so add to text
@@ -93,11 +95,13 @@ class GrundtvigParser(TEIParser):
         text = re.sub(",", ", ", text)
         text = re.sub("\ {2,}", " ", text)
         open("../grundtvig-data/Data/raw_ubehandledeFiler/"+os.path.basename(self.filepath)+".txt", "w+").write(text)
-
+"""
 
 #Find and iterate through all the files
-files = glob.iglob("../grundtvig-data/Data/ubehandledeFiler/*.xml", recursive=True)
+files = iglob("/Users/oliverjarvis/Arbejde/grundtvig-data/Data/xmlFilesEdit/1804-1825/*.xml", recursive=True)
+
 for f in files:
+    print(f)
     try:
         #We create a TEIParser given the filename
         #Our GrundtvigParser will iterate through a TEI document, finding the tags
@@ -105,15 +109,17 @@ for f in files:
         parser = GrundtvigParser(f) #load filename and a tag validator
         #Check the version, adjust validator based on version
         if parser.find_tag(parser.root_node, "idno"):
-            tag_valid = GrundtvigTagValidator("grundtvig-new.json")
+            tag_valid = GrundtvigTagValidator("/Users/oliverjarvis/Arbejde/grundtvig-parser/grundtvig-tagvalid.json")
             parser.setValidator(tag_valid)
+            parser.parse()
 
         else:
-            tag_valid = GrundtvigTagValidator("grundtvig-new.json")
+            tag_valid = GrundtvigTagValidator("/Users/oliverjarvis/Arbejde/grundtvig-parser/grundtvig-tagvalid.json")
             parser.setValidator(tag_valid)
+            parser.parse()
         #content of files are retrieved and saved
         #TODO: Add modular saving function
-        parser.content()
+        #parser.content()
     except:
         #some files do not conform to the xml standard, and are skipped
         pass

@@ -55,37 +55,53 @@ class GrundtvigTagValidator:
             return elem['exclude']
         return None
 
+#ISSUE: Problem with tag name. Current system, it doesn't make sense to return list when searching selector_path
+#but we need it when we check the content tag. Look when home. Priority number 1.
     def getTagName(self, elem) -> [str]:
-        tags= []
-        for t in elem:
-            if 'tag_name' in t:
-                tags.append(t['tag_name'])
-            else:
-                tags.append(None)
+        tags = []
+        if 'tag_name' in elem:
+            tags.append(elem['tag_name'])
+        else: tags.append(None)
+        #for t in elem:
+        #    if 'tag_name' in t:
+        #        tags.append(t['tag_name'])
+        #    else:
+        #        tags.append(None)
+        print("hello", tags)
+        print(type(tags))
         return tags
 
     def getAttribute(self, elem) -> [str]:
         attributes = []
-        for t in elem:
-            if 'attribute' in t:
-                attributes.append(t['attribute'])
-            else:
-                attributes.append(None)        
+        if 'attribute' in elem:
+            attributes.append(elem['attribute'])
+        else: attributes.append(None)
+        #for t in elem:
+        #    if 'attribute' in t:
+        #        attributes.append(t['attribute'])
+        #    else:
+        #        attributes.append(None)        
         return attributes
 
     def getAttributeValue(self, elem) -> [str]:
         attribVal = []
-        for t in elem:
-            if 'attributevalue' in t:
-                attribVal.append(t['attributevalue'])
-            else:
-                attribVal.append(None)        
+        if 'attributeValue' in elem:
+            attribVal.append(elem['attributeValue'])
+        else: attribVal.append(None)
+        #for t in elem:
+        #    if 'attributevalue' in t:
+        #        attribVal.append(t['attributevalue'])
+        #    else:
+        #        attribVal.append(None)        
         return attribVal
 
     def getIsRecursive(self, elem) -> [bool]:
-        rec= []
-        for t in elem:
-            if 'recursive' in t:
-                rec.append(t['recursive'])
+        rec = []
+        if 'recursive' in elem:
+            rec.append(elem['recursive'])
+        else: rec.append(None)
+        #for t in elem:
+        #    if 'recursive' in t:
+        #        rec.append(t['recursive'])
         
         return rec

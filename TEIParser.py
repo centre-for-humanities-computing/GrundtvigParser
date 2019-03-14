@@ -136,16 +136,17 @@ class TEIParser:
         return found
 
 ##We now look through a hierarchy of selectors, until we get the right values. This let's us say e.g. sourceDesc > Date
-    def get_elements(selector_path, root):
+    def get_elements(self, selector_path, root):
         nodes = root
-        output_nodes = None
+        output_nodes = []
+        print(selector_path[0])
         for selector in selector_path:
             nodes = self.find_Elements(
                 root = nodes,
+                attribute = self.validator.getAttribute(selector),
                 tag_name = self.validator.getTagName(selector),
-                attribute = self.validator.attribute(selector),
-                attributeValue = self.validator.attributeValye(selector),
-                recursive = self.validator.getRecursiv(selector)
+                attributeValue = self.validator.getAttributeValue(selector),
+                recursive = self.validator.getIsRecursive(selector)
                 )
             if 'content_tag' in selector:
                 for ct in selector['content_tag']:
@@ -154,7 +155,7 @@ class TEIParser:
                         tag_name = self.validator.getTagName(ct),
                         attribute = self.validator.getAttribute(ct),
                         attributeValue = self.validator.getAttributeValue(ct),
-                        recursive = self.validator.getRecursive(ct)
+                        recursive = self.validator.getIsRecursive(ct)
                     )
                     output_nodes += nodes
         
@@ -166,7 +167,7 @@ class TEIParser:
         #e.g. get all the paragraphs and all the line groups.
         for e in root:
             if self.is_element(elem=e, tag_name=tag_name, attribute=attribute, attributeValue=attributeValue):
-                found_elements += [root]
+                found_elements += [e]
                 if not recursive: #stop search if we just want the first element
                     return found_elements
         
@@ -175,7 +176,7 @@ class TEIParser:
                 found_elements += self.find_Elements([c], tag_name=tag_name, attribute=attribute, attributeValue=attributeValue, recursive=recursive)
                 if(found_elements and not recursive):
                     return found_elements
-            return found_elements
+        return found_elements
     
     def write_json(self):
         return
@@ -202,7 +203,7 @@ class TEIParser:
     
 
     def setValidator(self, validator):
-        self.tag_validator = validator
+        self.validator = validator
 
     
     def clean_text(self, text):
@@ -272,6 +273,6 @@ class TEIParser:
 
         for key in querySource:
             selector_path = self.validator.getSelectorPath(key)
-            elements = self.get_elements(selector_path)
-            self.document[key] = 
+            elements = self.get_elements(selector_path, self.root_node)
+            #self.document[key] = 
             
