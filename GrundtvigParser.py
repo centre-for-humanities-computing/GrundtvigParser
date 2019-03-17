@@ -102,11 +102,12 @@ files = iglob("/Users/oliverjarvis/Arbejde/grundtvig-data/Data/xmlFilesEdit/1804
 
 for f in files:
     print(f)
+    f1 = "/Users/oliverjarvis/Arbejde/grundtvig-parser/test_data.xml"
     try:
         #We create a TEIParser given the filename
         #Our GrundtvigParser will iterate through a TEI document, finding the tags
         #Specified by our GrundtvigTagValidator object
-        parser = GrundtvigParser(f) #load filename and a tag validator
+        parser = GrundtvigParser(f1) #load filename and a tag validator
         #Check the version, adjust validator based on version
         if parser.find_tag(parser.root_node, "idno"):
             tag_valid = GrundtvigTagValidator("/Users/oliverjarvis/Arbejde/grundtvig-parser/grundtvig-tagvalid.json")

@@ -150,14 +150,14 @@ class TEIParser:
                 )
             if 'content_tag' in selector:
                 for ct in selector['content_tag']:
-                    nodes = self.find_Elements(
+                    nodes_found = self.find_Elements(
                         root = nodes,
                         tag_name = self.validator.getTagName(ct),
                         attribute = self.validator.getAttribute(ct),
                         attributeValue = self.validator.getAttributeValue(ct),
                         recursive = self.validator.getIsRecursive(ct)
                     )
-                    output_nodes += nodes
+                    output_nodes += nodes_found
         
         return output_nodes
 
@@ -173,7 +173,13 @@ class TEIParser:
         
             #Go through all elements recursively until they have all been found.
             for c in list(e):
-                found_elements += self.find_Elements([c], tag_name=tag_name, attribute=attribute, attributeValue=attributeValue, recursive=recursive)
+                found_elements += self.find_Elements(
+                    [c], 
+                    tag_name=tag_name, 
+                    attribute=attribute, 
+                    attributeValue=attributeValue, 
+                    recursive=recursive
+                    )
                 if(found_elements and not recursive):
                     return found_elements
         return found_elements
@@ -274,5 +280,6 @@ class TEIParser:
         for key in querySource:
             selector_path = self.validator.getSelectorPath(key)
             elements = self.get_elements(selector_path, self.root_node)
+            self.document[key] = elements
             #self.document[key] = 
             
