@@ -45,64 +45,53 @@ class GrundtvigParser(TEIParser):
     def __init__(self, filename):
         super().__init__(filename)
 
-    """
-    def extract_text(self, from_element, t):
-        text = ""
-        #check if there is text, if so add to text
-        if from_element.text:
-            text += self.clean_text(from_element.text.strip())
+    def getMetadata(self):
+        metadata_document = dict()
 
-        #get exclusions
-        #exclusions are tags that should be skipped
-        excludes = self.tag_validator.getExcludes(self.tag_validator.getElementForTagName(t, etree.QName(from_element.tag).localname))
+        #get status
+        status = ""
+        if super().find_tag(parser.root_node, "idno"):
+            status = "behandlet"
+        else:
+            status = "ubenhandlet"
 
-        #get inner text from inner elements
-        text += self.clean_text(self.__get_inner(from_element, excludes))
+        metadata_document['status'] = status
+
+        #get filename:
+        metadata_document['file'] = os.path.basename(self.filepath)
+        metadata_document['date'] = self.document['date'][0]['content']
+
+
+        if metadata_document['status'] == "behandlet":
+
+            metadata_document['version_id'] = self.document['version'][0]['content']
+            #get genre
+            genres = ""
+            for x in self.document['genre']:
+                genres += x['content'] + " "
+            
+            metadata_document['genres'] = genres
+            #get keywords
+            keywords = ""
+            for x in self.document['keywords']:
+                keywords += x['content'] + " "
+            metadata_document['keywords'] = keywords
+
+        super().write_json(metadata_document)
         
-        #check if there is tail, if so add to text
-        if from_element.tail:
-            text += self.clean_text(from_element.tail.strip())
-        return text
+    def getContent(self):
+        super().write_raw(document_nodes=["content"], file_prefix="clean_")
 
-    def metadata(self):
+        
+
+    def write_json(self):
         return
-    
-    def content(self):
-        tags = self.tag_validator.getQueryTags("body")
-
-        #We need to get the content from the body tag
-        content_base = super().get_Elements(
-            [self.root_node], 
-            tag_name=["body"], 
-            attribute=[None], 
-            attributeValue=[None], 
-            recursive=False
-            )
-
-        #Once we gave the body element, we can find all the elements
-        content = super().get_Elements(
-            content_base[0], 
-            tag_name=self.tag_validator.getTagName(tags), 
-            attribute=self.tag_validator.getAttribute(tags),
-            attributeValue=self.tag_validator.getAttributeValue(tags),
-            recursive=self.tag_validator.getIsRecursive(tags)
-            )
-
-        text = ""
-        for c in content:
-            text += self.clean_text(self.extract_text(c[0],tags)) + '\n\n'
-        
-        text = re.sub(",", ", ", text)
-        text = re.sub("\ {2,}", " ", text)
-        open("../grundtvig-data/Data/raw_ubehandledeFiler/"+os.path.basename(self.filepath)+".txt", "w+").write(text)
-"""
 
 #Find and iterate through all the files
 files = iglob("/Users/oliverjarvis/Arbejde/grundtvig-data/Data/xmlFilesEdit/1804-1825/*.xml", recursive=True)
 
 for f in files:
-    print(f)
-    f1 = "/Users/oliverjarvis/Arbejde/grundtvig-parser/test_data.xml"
+    f1 = "/Users/oliverjarvis/Arbejde/grundtvig-parser/test_data_old.xml"
     try:
         #We create a TEIParser given the filename
         #Our GrundtvigParser will iterate through a TEI document, finding the tags
@@ -112,12 +101,15 @@ for f in files:
         if parser.find_tag(parser.root_node, "idno"):
             tag_valid = GrundtvigTagValidator("/Users/oliverjarvis/Arbejde/grundtvig-parser/grundtvig-tagvalid.json")
             parser.setValidator(tag_valid)
-            parser.parse()
+            parser.parse(parse_text = True)
+            parser.getMetadata()
 
         else:
-            tag_valid = GrundtvigTagValidator("/Users/oliverjarvis/Arbejde/grundtvig-parser/grundtvig-tagvalid.json")
+            tag_valid = GrundtvigTagValidator("/Users/oliverjarvis/Arbejde/grundtvig-parser/grundtvig-tagvalid-old.json")
             parser.setValidator(tag_valid)
             parser.parse()
+            parser.getMetadata()
+            parser.getContent()
         #content of files are retrieved and saved
         #TODO: Add modular saving function
         #parser.content()

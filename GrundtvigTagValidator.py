@@ -50,58 +50,70 @@ class GrundtvigTagValidator:
             if e['tag_name'] == tagName:
                 return e
     
-    def getExcludes(self, elem):
-        if('exclude' in elem):
+    def getExcludes(self, selector, element):
+        selector_paths = self.getSelectorPath(selector)
+        if "content_tag" in selector_paths[-1]:
+            for v in selector_paths[-1]['content_tag']:
+                if v['tag_name'] == element:
+                    elem = v
+        if 'exclude' in elem:
             return elem['exclude']
         return None
+    
+    def getReplaces(self, selector, element):
+        selector_paths = self.getSelectorPath(selector)
+        if "content_tag" in selector_paths[-1]:
+            for v in selector_paths[-1]['content_tag']:
+                if v['tag_name'] == element:
+                    elem = v
+        if 'replace' in elem:
+            return elem['replace']
 
 #ISSUE: Problem with tag name. Current system, it doesn't make sense to return list when searching selector_path
 #but we need it when we check the content tag. Look when home. Priority number 1.
     def getTagName(self, elem) -> [str]:
         tags = []
-        if 'tag_name' in elem:
-            tags.append(elem['tag_name'])
-        else: tags.append(None)
-        #for t in elem:
-        #    if 'tag_name' in t:
-        #        tags.append(t['tag_name'])
-        #    else:
-        #        tags.append(None)
-        print("hello", tags)
-        print(type(tags))
+        #if 'tag_name' in elem:
+        #    tags.append(elem['tag_name'])
+        #else: tags.append(None)
+        for t in elem:
+            if 'tag_name' in t:
+                tags.append(t['tag_name'])
+            else:
+                tags.append(None)
         return tags
 
     def getAttribute(self, elem) -> [str]:
         attributes = []
-        if 'attribute' in elem:
-            attributes.append(elem['attribute'])
-        else: attributes.append(None)
-        #for t in elem:
-        #    if 'attribute' in t:
-        #        attributes.append(t['attribute'])
-        #    else:
-        #        attributes.append(None)        
+        #if 'attribute' in elem:
+        #    attributes.append(elem['attribute'])
+        #else: attributes.append(None)
+        for t in elem:
+            if 'attribute' in t:
+                attributes.append(t['attribute'])
+            else:
+                attributes.append(None)        
         return attributes
 
     def getAttributeValue(self, elem) -> [str]:
         attribVal = []
-        if 'attributeValue' in elem:
-            attribVal.append(elem['attributeValue'])
-        else: attribVal.append(None)
-        #for t in elem:
-        #    if 'attributevalue' in t:
-        #        attribVal.append(t['attributevalue'])
-        #    else:
-        #        attribVal.append(None)        
+        #if 'attributeValue' in elem:
+        #    attribVal.append(elem['attributeValue'])
+        #else: attribVal.append(None)
+        for t in elem:
+            if 'attributevalue' in t:
+                attribVal.append(t['attributevalue'])
+            else:
+                attribVal.append(None)        
         return attribVal
 
     def getIsRecursive(self, elem) -> [bool]:
         rec = []
-        if 'recursive' in elem:
-            rec.append(elem['recursive'])
-        else: rec.append(None)
-        #for t in elem:
-        #    if 'recursive' in t:
-        #        rec.append(t['recursive'])
+        #if 'recursive' in elem:
+        #    rec.append(elem['recursive'])
+        #else: rec.append(None)
+        for t in elem:
+            if 'recursive' in t:
+                rec.append(t['recursive'])
         
         return rec

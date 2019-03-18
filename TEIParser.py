@@ -24,6 +24,9 @@
 from lxml import etree, objectify
 import lxml.html, lxml.html.clean
 from argparse import ArgumentParser
+import re
+import os
+import json
 #from GrundtvigTagValidator import metadata, body
 
 class TEIParser:
@@ -67,23 +70,43 @@ class TEIParser:
         self.validator = None
         self.document = dict()
    
+    def write_raw(self, document_nodes, file_prefix, directory=""):
+        #get filename without path
+        filename = file_prefix + os.path.basename(self.filepath)
+        filename = filename.replace(".xml", ".txt")
+        file_loc = os.path.join(directory, filename)
+        with open(file_loc, "w+") as f:
+            for node in document_nodes:
+                for c in self.document[node]:
+                    f.write(c['content'] + '\n')
+    
+    def write_json(self, document, file_prefix="metadata_", directory=""):
+        filename = file_prefix + os.path.basename(self.filepath)
+        filename = filename.replace(".xml", ".json")
+        file_loc = os.path.join(directory, filename)
+
+        j = json.dumps(document, indent=4, ensure_ascii=False)
+        f = open(file_loc, 'w')
+        f.write(j)
 
     def extract_text(self, key, from_element):
         text = ""
+
         #check if there is text, if so add to text
         if from_element.text:
-            text += self.clean_text(from_element.text.strip())
+            text += self.clean_text(from_element.text)
 
         #get exclusions
         #exclusions are tags that should be skipped
         excludes = self.validator.getExcludes(key, etree.QName(from_element.tag).localname)
+        replaces = self.validator.getReplaces(key, etree.QName(from_element.tag).localname)
 
         #get inner text from inner elements
-        text += self.clean_text(self.__get_inner(from_element, excludes))
+        text += self.clean_text(self.__get_inner(from_element, excludes, replaces))
         
         #check if there is tail, if so add to text
         if from_element.tail:
-            text += self.clean_text(from_element.tail.strip())
+            text += self.clean_text(from_element.tail)
         return text
 
     def find_tag(self, root, tag_name) -> bool:
@@ -124,7 +147,6 @@ class TEIParser:
     def get_elements(self, selector_path, root):
         nodes = root
         output_nodes = []
-        print(selector_path[0])
         for selector in selector_path:
             selector_array = [selector] #must be in array format to be parsed to find_Elements. Might not be best programming practice
             nodes = self.find_Elements(
@@ -170,11 +192,6 @@ class TEIParser:
                     return found_elements
         return found_elements
     
-    def write_json(self):
-        return
-    def write_raw(self, sep='\n'):
-        return
-    
     def __is_tag(self, elem, tag_name):
         return etree.QName(elem.tag).localname == tag_name
     
@@ -184,23 +201,27 @@ class TEIParser:
 
     
     def clean_text(self, text):
-        if text.isspace():
-            return " "
-        text = text.replace('\n', ' ')
-        text = text.replace('\t', ' ')
+        
+        #if text.isspace():
+        #    return " "
+        #text = text.replace('\n', ' ')
+        #text = text.replace('\t', ' ')
+        
+        
 
         #Only add spaces if the text had spaces to begin with
-        if not (text == text.strip()):
-            if text.startswith(' ') or text.startswith('\t') and text.endswith(' ') or text.endswith('\t'):
-                text = " " + text.strip() + " "
-            elif text.startswith(' ') or text.startswith('\t'):
-                text = " " + text.strip()
-            elif text.endswith(' ') or text.endswith('\t'):
-                text = text.strip() + " "
+        #if not (text == text.strip()):
+        #    if text.startswith(' ') or text.startswith('\t') and text.endswith(' ') or text.endswith('\t'):
+        #        text = " " + text.strip() + " "
+        #    elif text.startswith(' ') or text.startswith('\t'):
+        #        text = " " + text.strip()
+        #    elif text.endswith(' ') or text.endswith('\t'):
+        #        text = text.strip() + " "
+        re.sub("\ {2,}", " ", text)
 
         return text
 
-    def __get_inner(self, from_element, excludes):
+    def __get_inner(self, from_element, excludes, replaces):
         text = ""
 
         #Go through all the child elements of from_element
@@ -218,14 +239,16 @@ class TEIParser:
                     found = False
                     if self.is_element(elem=c, tag_name=[ex['tag_name']], attribute=[None], attributeValue=[None]):
                         found = True
-                if found:
-                    continue
+                    if found:
+                        break
+            if found:
+                continue
             
             if c.text:
                 text += self.clean_text(c.text)
             #recursively explore for more embedded tags
             if list(c):
-                text += self.__get_inner(c, excludes)
+                text += self.__get_inner(c, excludes, replaces)
             if c.tail:
                 text += self.clean_text(c.tail)
 
@@ -253,7 +276,7 @@ class TEIParser:
             elements = self.get_elements(selector_path, self.root_node)
             elements_text = []
             for e in elements:
-                text = self.extract_text(key, e)
+                text = self.extract_text(key, e).strip()
                 elements_text.append(
                     {
                         "tag":e, 
