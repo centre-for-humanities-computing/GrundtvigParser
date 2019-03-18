@@ -68,22 +68,7 @@ class TEIParser:
         self.document = dict()
    
 
-    #Public variables:
-    #def extract_text(self, from_element):
-    #    text = ""
-    #    #check if there is text, if so add to text
-    #    if from_element.text:
-    #        text += from_element.text
-    #
-    #    #get inner text from inner elements
-    #    text += self.__get_inner(from_element)
-    #
-    #    #check if there is tail, if so add to text
-    #    if from_element.tail:
-    #        text += from_element.tail
-    #    return text
-
-    def extract_text(self, from_element, t):
+    def extract_text(self, key, from_element):
         text = ""
         #check if there is text, if so add to text
         if from_element.text:
@@ -91,7 +76,7 @@ class TEIParser:
 
         #get exclusions
         #exclusions are tags that should be skipped
-        excludes = self.tag_validator.getExcludes(self.tag_validator.getElementForTagName(t, etree.QName(from_element.tag).localname))
+        excludes = self.validator.getExcludes(key, etree.QName(from_element.tag).localname)
 
         #get inner text from inner elements
         text += self.clean_text(self.__get_inner(from_element, excludes))
@@ -141,23 +126,24 @@ class TEIParser:
         output_nodes = []
         print(selector_path[0])
         for selector in selector_path:
+            selector_array = [selector] #must be in array format to be parsed to find_Elements. Might not be best programming practice
             nodes = self.find_Elements(
                 root = nodes,
-                attribute = self.validator.getAttribute(selector),
-                tag_name = self.validator.getTagName(selector),
-                attributeValue = self.validator.getAttributeValue(selector),
-                recursive = self.validator.getIsRecursive(selector)
+                attribute = self.validator.getAttribute(selector_array),
+                tag_name = self.validator.getTagName(selector_array),
+                attributeValue = self.validator.getAttributeValue(selector_array),
+                recursive = self.validator.getIsRecursive(selector_array)
                 )
             if 'content_tag' in selector:
-                for ct in selector['content_tag']:
-                    nodes_found = self.find_Elements(
-                        root = nodes,
-                        tag_name = self.validator.getTagName(ct),
-                        attribute = self.validator.getAttribute(ct),
-                        attributeValue = self.validator.getAttributeValue(ct),
-                        recursive = self.validator.getIsRecursive(ct)
-                    )
-                    output_nodes += nodes_found
+                #for ct in selector['content_tag']:
+                nodes_found = self.find_Elements(
+                    root = nodes,
+                    tag_name = self.validator.getTagName(selector['content_tag']),
+                    attribute = self.validator.getAttribute(selector['content_tag']),
+                    attributeValue = self.validator.getAttributeValue(selector['content_tag']),
+                    recursive = self.validator.getIsRecursive(selector['content_tag'])
+                )
+                output_nodes += nodes_found
         
         return output_nodes
 
@@ -188,21 +174,6 @@ class TEIParser:
         return
     def write_raw(self, sep='\n'):
         return
-    
-    #Private functions
-    def __get_inner(self, from_element):
-        text = ""
-        for c in list(from_element):
-            if self.is_element(c, attribute="facs"):
-                text += " "
-            if self.tagIsAccepted(c.tag):
-                if c.text:
-                    text += c.text
-                if list(c):
-                    text += self.__get_inner(c)
-                if c.tail:
-                    text += c.tail
-        return text
     
     def __is_tag(self, elem, tag_name):
         return etree.QName(elem.tag).localname == tag_name
@@ -236,7 +207,7 @@ class TEIParser:
         for c in list(from_element):
             #If elements has the attribute "facs" add a space to text. 
             #Elements with a facs attribute tend to forego spaces between tags
-            if super().is_element(c, tag_name=[None], attribute=["facs"], attributeValue=[None]):
+            if self.is_element(c, tag_name=[None], attribute=["facs"], attributeValue=[None]):
                 text += " "
             
             #check whether element is in the list to exclude
@@ -245,7 +216,7 @@ class TEIParser:
             if excludes:
                 for ex in excludes:
                     found = False
-                    if super().is_element(elem=c, tag_name=[ex['tag_name']], attribute=[None], attributeValue=[None]):
+                    if self.is_element(elem=c, tag_name=[ex['tag_name']], attribute=[None], attributeValue=[None]):
                         found = True
                 if found:
                     continue
@@ -260,7 +231,7 @@ class TEIParser:
 
         return text
 
-    def parse(self, clean_text = True):
+    def parse(self, parse_text = True):
         """
         Takes our root_node and our validator and extracts all of our data into a dictionary document
         
@@ -280,6 +251,13 @@ class TEIParser:
         for key in querySource:
             selector_path = self.validator.getSelectorPath(key)
             elements = self.get_elements(selector_path, self.root_node)
-            self.document[key] = elements
-            #self.document[key] = 
-            
+            elements_text = []
+            for e in elements:
+                text = self.extract_text(key, e)
+                elements_text.append(
+                    {
+                        "tag":e, 
+                        "content":text
+                    })
+
+            self.document[key] = elements_text
