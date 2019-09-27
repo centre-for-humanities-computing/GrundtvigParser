@@ -1,0 +1,24 @@
+{
+  "content": {
+    "selector_path": [
+      {
+        "tag_name": "body",
+        "recursive": false,
+        "content_tag": [
+          {
+            "tag_name": "hi",
+            "attribute": "rend",
+            "attributevalue": "bold",
+            "recursive": true,
+            "tag_only": true,
+            "get_content": [
+              {
+                "type": "text"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

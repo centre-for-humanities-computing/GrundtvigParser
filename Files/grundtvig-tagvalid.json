@@ -1,0 +1,147 @@
+{
+    "date": {
+      "selector_path": [
+        {
+          "tag_name": "teiHeader",
+          "recursive": false
+        },
+        {
+          "tag_name": "sourceDesc",
+          "recursive": false,
+          "content_tag": [
+            {
+              "tag_name": "date",
+              "get_content": [
+                {
+                  "type": "text"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "version": {
+      "selector_path": [
+        {
+          "tag_name": "teiHeader",
+          "recursive": false,
+          "content_tag": [
+            {
+              "tag_name": "idno",
+              "get_content": [
+                {
+                  "type": "text"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "genre": {
+      "selector_path": [
+        {
+          "tag_name": "teiHeader",
+          "recursive": false
+        },
+        {
+          "tag_name": "classCode",
+          "attribute": "scheme",
+          "recursive": false,
+          "content_tag": [
+            {
+              "tag_name": "term",
+              "recursive": true,
+              "get_content": [
+                {
+                  "type": "text"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "keywords": {
+      "selector_path": [
+        {
+          "tag_name": "teiHeader",
+          "recursive": false
+        },
+        {
+          "tag_name": "keywords",
+          "attribute": "scheme",
+          "recursive": false,
+          "content_tag": [
+            {
+              "tag_name": "term",
+              "recursive": true,
+              "get_content": [
+                {
+                  "type": "text"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "content": {
+      "selector_path": [
+        {
+          "tag_name": "body",
+          "recursive": false,
+          "content_tag": [
+            {
+              "tag_name": "p",
+              "attribute": "rend",
+              "recursive": true,
+              "exclude": [
+                {
+                  "tag_name": "rdg"
+                },
+                {
+                  "tag_name": "witDetail"
+                }
+              ],
+              "replace":[
+                {
+                  "tag_name": "pb",
+                  "replace_str": " "
+                }
+              ],
+              "get_content": [
+                {
+                  "type": "text"
+                }
+              ]
+            },
+            {
+              "tag_name": "lg",
+              "recursive": true,
+              "exclude": [
+                {
+                  "tag_name": "rag"
+                },
+                {
+                  "tag_name": "witDetail"
+                }
+              ],
+              "replace":[
+                {
+                  "tag_name": "pb",
+                  "replace_str": " "
+                }
+              ],
+              "get_content": [
+                {
+                  "type": "text"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }

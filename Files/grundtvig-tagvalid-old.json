@@ -1,0 +1,80 @@
+{
+    "date": {
+      "selector_path": [
+        {
+          "tag_name": "teiHeader",
+          "recursive": false
+        },
+        {
+          "tag_name": "publicationStmt",
+          "recursive": false,
+          "content_tag": [
+            {
+              "tag_name": "date",
+              "get_content": [
+                {
+                  "type": "text"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "content": {
+      "selector_path": [
+        {
+          "tag_name": "body",
+          "recursive": false,
+          "content_tag": [
+            {
+              "tag_name": "p",
+              "recursive": true,
+              "exclude": [
+                {
+                  "tag_name": "rdg"
+                },
+                {
+                  "tag_name": "witDetail"
+                }
+              ],
+              "replace":[
+                {
+                  "tag_name": "pb",
+                  "replace_str": " "
+                }
+              ],
+              "get_content": [
+                {
+                  "type": "text"
+                }
+              ]
+            },
+            {
+              "tag_name": "lg",
+              "recursive": true,
+              "exclude": [
+                {
+                  "tag_name": "rag"
+                },
+                {
+                  "tag_name": "witDetail"
+                }
+              ],
+              "replace":[
+                {
+                  "tag_name": "pb",
+                  "replace_str": " "
+                }
+              ],
+              "get_content": [
+                {
+                  "type": "text"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }
