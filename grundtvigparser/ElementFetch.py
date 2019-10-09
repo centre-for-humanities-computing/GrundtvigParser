@@ -50,7 +50,8 @@ class ElementFetch(TEIParser):
         super().write_raw(document_nodes=["content"], file_postfix="_rend", directory=file_dir)
 
 def runFetch(input_dir, validation, output_dir):
-    files = glob.glob(os.path.join(input_dir,"*.xml"), recursive=True)
+    input_path = os.path.join(input_dir, "*.xml")
+    files = glob.glob(input_path, recursive=True)
     for val in validation:
         subdirectory = os.path.basename(val)[:-5]
         for f in files:
